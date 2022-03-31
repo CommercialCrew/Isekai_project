@@ -4,8 +4,9 @@ var w = 1400;
 var h = 1000;
 var terrain = [];
 var framePreset = 0;
-let cameraSpeed = 450;
+let cameraSpeed = 0;
 var moonlight = 0;
+var cameraPosX, cameraPosY, cameraPosZ;
 var flightPosX, flightPosY;
 var flyingSpeed = 0;
 var timeLimit = 60;
@@ -27,6 +28,8 @@ function setup() {
     // 비행기 위치 초기화
     flightPosX = 300 - width / 2;
     flightPosY = height / 2 - 150;
+    cameraPosX = flightPosX;
+    cameraPosY = flightPosY;
 }
 
 function draw() {
@@ -44,8 +47,7 @@ function draw() {
     rotateX(PI / 3);
     // 카메라 위치 설정 및 각도 설정
     camera.lookAt(flightPosX, flightPosY, 200);
-    camera.setPosition(flightPosX, flightPosY + cameraSpeed, cameraSpeed * 1.73);
-
+    camera.setPosition(flightPosX + cameraPosX, (flightPosY + cameraPosY) + cameraSpeed, 266);
 
     translate(-w / 2, -h / 2);
     // 산 생성
@@ -129,19 +131,83 @@ function flight() {
 function flightKeyPressed() {
     /* 비행기 및 카메라 조절 함수 */
     if (keyIsDown(UP_ARROW)) {
-        cameraSpeed -= 4;
+        cameraSpeed += 10;
         flightPosY -= 10;
+        cameraPosY -= 10;
     }
     if (keyIsDown(DOWN_ARROW)) {
-        cameraSpeed += 4;
+        cameraSpeed -= 10;
         flightPosY += 10;
+        cameraPosY += 10;
     }
     if (keyIsDown(LEFT_ARROW)) {
         rotateY(-PI / 3);
         flightPosX -= 10;
+        cameraPosX -= 10;
     }
     if (keyIsDown(RIGHT_ARROW)) {
         rotateY(PI / 3);
         flightPosX += 10;
+        cameraPosX += 10;
+    }
+    cameraRollBack();
+    limitFlightField(flightPosX, flightPosY);
+    limitCamera(cameraPosX, cameraPosY);
+}
+
+function limitFlightField(_flightPosX, _flightPosY) {
+    /* 비행기가 움직일 수 있는 범위를 제한합니다 */
+    limitX = 750;
+    limitY = 1280;
+    if (_flightPosX > limitX) {
+        flightPosX = limitX;
+    } else if (_flightPosX < -limitX) {
+        flightPosX = -limitX;
+    }
+    if (_flightPosY > limitY) {
+        flightPosY = limitY;
+    } else if (_flightPosY < -limitY) {
+        flightPosY = -limitY;
+    }
+}
+
+function limitCamera(_cameraPosX, _cameraPosY) {
+    /* 카메라 이동 범위를 제한합니다. */
+    var limitX = 45;
+    var limitY = 150;
+    if (_cameraPosX >= limitX) {
+        cameraPosX = limitX;
+    } else if (_cameraPosX < -limitX) {
+        cameraPosX = -limitX;
+    }
+    if (_cameraPosY > limitY || _cameraPosY <= limitY) {
+        cameraPosY = limitY;
+    }
+
+    if (cameraSpeed > 100) {
+        cameraSpeed = 100;
+    } else if (cameraSpeed < 0) {
+        cameraSpeed = 0;
+    }
+}
+
+function cameraRollBack() {
+    /* 카메라를 원래대로 복귀시킵니다 */
+    if (cameraPosX > 0) {
+        cameraPosX--;
+    } else if (cameraPosX < 0) {
+        cameraPosX++;
+    }
+
+    if (cameraPosY > 0) {
+        cameraPosY--;
+    } else if (cameraPosY < 0) {
+        cameraPosY++;
+    }
+
+    if (cameraSpeed > 0) {
+        cameraSpeed--;
+    } else if (cameraSpeed < 0) {
+        cameraSpeed++;
     }
 }
