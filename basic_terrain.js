@@ -1,15 +1,17 @@
 var cols, rows;
 var scl = 20;
-var w = 1400;
-var h = 1000;
+var w = 2400;
+var h = 1200;
 var terrain = [];
 var framePreset = 0;
-let cameraSpeed = 450;
+let cameraSpeed = 0;
 var moonlight = 0;
+var cameraPosX, cameraPosY, cameraPosZ;
 var flightPosX, flightPosY;
 var flyingSpeed = 0;
 var timeLimit = 60;
 const FRAME_RATE = 60;
+let bullet = [];
 
 function setup() {
     createCanvas(600, 600, WEBGL);
@@ -27,7 +29,11 @@ function setup() {
     // 비행기 위치 초기화
     flightPosX = 300 - width / 2;
     flightPosY = height / 2 - 150;
-    thread(dropCount);
+    cameraPosX = flightPosX;
+    cameraPosY = flightPosY/10;
+    for(let i=0; i<200;i++){
+        bullet[i] = new Bullet();
+    }
 }
 
 function draw() {
@@ -39,15 +45,14 @@ function draw() {
         background(80, 188, 223);
     }
     // 산 높이 및 산 이동 속도 설정
-    flyingSpeed -= 0.01;
+    flyingSpeed -= 0.01 + map(cameraSpeed, 0, 50, 0.01, 0.09);
     setMountain(flyingSpeed);
     translate(0, 50);
     rotateX(PI / 3);
     // 카메라 위치 설정 및 각도 설정
-    camera.lookAt(flightPosX, flightPosY, 200);
-    camera.setPosition(flightPosX, flightPosY + cameraSpeed, cameraSpeed * 1.73);
-
-
+    camera.lookAt(flightPosX, flightPosY-90 , 200);
+    camera.setPosition(flightPosX + cameraPosX, (flightPosY + cameraPosY) + cameraSpeed-90, 266+cameraSpeed);
+    //print(flightPosX, flightPosY);
     translate(-w / 2, -h / 2);
     // 산 생성
     makeMountain();
@@ -56,7 +61,12 @@ function draw() {
     makeSun(framePreset);
     makeMoon(framePreset, moonlight);
     pop();
-
+    shooter();
+    for(let j=0; j<200; j++){
+        bullet[j].delay = j;
+        bullet[j].move(map(j,0,100,0,PI));
+        bullet[j].display();
+    }
     translate(w / 2, h / 2);
     /* 비행기 위치 이동 translate */
     translate(flightPosX, flightPosY, 200);
@@ -117,32 +127,132 @@ function flight() {
     flightKeyPressed();
 
     fill(125);
-    triangle(-50, 20, 0, -30, 50, 20);
-    triangle(-50, 20, -25, 20, -37.5, 37.5);
+    triangle(-5, 2, 0, -3, 5, 2);
+    triangle(-5, 2, -2.5, 2, -3.75, 3.75);
     fill(0);
-    triangle(-25, 20, 0, 20, -12.5, 27.5);
-    triangle(0, 20, 25, 20, 12.5, 27.5);
+    triangle(-2.5, 2, 0, 2, -1.25, 2.75);
+    triangle(0, 2, 2.5, 2, 1.25, 2.75);
     fill(125);
-    triangle(25, 20, 50, 20, 37.5, 37.5);
+    triangle(2.5, 2, 5, 2, 3.75, 3.75);
     noFill();
 }
 
 function flightKeyPressed() {
     /* 비행기 및 카메라 조절 함수 */
     if (keyIsDown(UP_ARROW)) {
-        cameraSpeed -= 4;
+        cameraSpeed += 2;
         flightPosY -= 10;
+        cameraPosY -= 10;
     }
     if (keyIsDown(DOWN_ARROW)) {
-        cameraSpeed += 4;
+        cameraSpeed -= 2;
         flightPosY += 10;
+        cameraPosY += 10;
     }
     if (keyIsDown(LEFT_ARROW)) {
         rotateY(-PI / 3);
         flightPosX -= 10;
+        cameraPosX -= 10;
     }
     if (keyIsDown(RIGHT_ARROW)) {
         rotateY(PI / 3);
         flightPosX += 10;
+        cameraPosX += 10;
+    }
+    cameraRollBack();
+    limitFlightField(flightPosX, flightPosY);
+    limitCamera(cameraPosX, cameraPosY);
+}
+
+function limitFlightField(_flightPosX, _flightPosY) {
+    /* 비행기가 움직일 수 있는 범위를 제한합니다 */
+    limitX = 1080;
+    limitY = 330;
+    if (_flightPosX > limitX) {
+        flightPosX = limitX;
+    } else if (_flightPosX < -limitX) {
+        flightPosX = -limitX;
+    }
+    if (_flightPosY > limitY) {
+        flightPosY = limitY;
+    } else if (_flightPosY < -limitY) {
+        flightPosY = -limitY;
+    }
+}
+
+function limitCamera(_cameraPosX, _cameraPosY) {
+    /* 카메라 이동 범위를 제한합니다. */
+    var limitX = 25;
+    var limitY = 150;
+    if (_cameraPosX >= limitX) {
+        cameraPosX = limitX;
+    } else if (_cameraPosX < -limitX) {
+        cameraPosX = -limitX;
+    }
+    if (_cameraPosY > limitY || _cameraPosY <= limitY) {
+        cameraPosY = limitY;
+    }
+
+    if (cameraSpeed > 50) {
+        cameraSpeed = 50;
+    } else if (cameraSpeed < 0) {
+        cameraSpeed = 0;
+    }
+}
+
+function cameraRollBack() {
+    /* 카메라를 원래대로 복귀시킵니다 */
+    if (cameraPosX > 0) {
+        cameraPosX--;
+    } else if (cameraPosX < 0) {
+        cameraPosX++;
+    }
+
+    if (cameraSpeed > 0) {
+        cameraSpeed--;
+    } else if (cameraSpeed < 0) {
+        cameraSpeed++;
+    }
+}
+
+function shooter(){
+    push();
+    translate(w/2,0,200);
+    fill(255);
+    torus(50);
+    pop();
+}
+class Bullet {
+    constructor() {
+        this.x = w/2;
+        this.y = -100;
+        this.speed = 5;
+        this.time = 0;
+        this.delay = 0;
+    }
+
+    move(a, d) {
+        if(this.time > this.delay){
+            this.x += sin(a)*this.speed;
+            this.y += cos(a)*this.speed;
+        }
+        this.time++;
+    }
+
+    display() {
+        push();
+        translate(this.x, this.y,200);
+        //print(this.x, this.y);
+        if(abs(this.x-1200-flightPosX)<4 && abs(this.y-600-flightPosY)<4){
+            print("you died");
+        }
+        if(this.time>200+this.delay){
+            this.x = w/2;
+            this.y = -100;
+            this.time = this.delay;
+        }
+        fill(255,255,0);
+        sphere(4);
+        pop();
     }
 }
