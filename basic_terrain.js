@@ -27,7 +27,6 @@ function setup() {
     // 비행기 위치 초기화
     flightPosX = 300 - width / 2;
     flightPosY = height / 2 - 150;
-    thread(dropCount);
 }
 
 function draw() {
