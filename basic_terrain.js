@@ -1,7 +1,7 @@
 var cols, rows;
 var scl = 20;
-var w = 1400;
-var h = 1000;
+var w = 2400;
+var h = 1200;
 var terrain = [];
 var framePreset = 0;
 let cameraSpeed = 0;
@@ -29,7 +29,7 @@ function setup() {
     flightPosX = 300 - width / 2;
     flightPosY = height / 2 - 150;
     cameraPosX = flightPosX;
-    cameraPosY = flightPosY;
+    cameraPosY = flightPosY/10;
 }
 
 function draw() {
@@ -41,14 +41,14 @@ function draw() {
         background(80, 188, 223);
     }
     // 산 높이 및 산 이동 속도 설정
-    flyingSpeed -= 0.01;
+    flyingSpeed -= 0.01 + map(cameraSpeed, 0, 50, 0.01, 0.09);
     setMountain(flyingSpeed);
     translate(0, 50);
     rotateX(PI / 3);
     // 카메라 위치 설정 및 각도 설정
-    camera.lookAt(flightPosX, flightPosY, 200);
-    camera.setPosition(flightPosX + cameraPosX, (flightPosY + cameraPosY) + cameraSpeed, 266);
-
+    camera.lookAt(flightPosX, flightPosY-90 , 200);
+    camera.setPosition(flightPosX + cameraPosX, (flightPosY + cameraPosY) + cameraSpeed-90, 266+cameraSpeed);
+    print(flightPosX, flightPosY);
     translate(-w / 2, -h / 2);
     // 산 생성
     makeMountain();
@@ -118,25 +118,25 @@ function flight() {
     flightKeyPressed();
 
     fill(125);
-    triangle(-50, 20, 0, -30, 50, 20);
-    triangle(-50, 20, -25, 20, -37.5, 37.5);
+    triangle(-5, 2, 0, -3, 5, 2);
+    triangle(-5, 2, -2.5, 2, -3.75, 3.75);
     fill(0);
-    triangle(-25, 20, 0, 20, -12.5, 27.5);
-    triangle(0, 20, 25, 20, 12.5, 27.5);
+    triangle(-2.5, 2, 0, 2, -1.25, 2.75);
+    triangle(0, 2, 2.5, 2, 1.25, 2.75);
     fill(125);
-    triangle(25, 20, 50, 20, 37.5, 37.5);
+    triangle(2.5, 2, 5, 2, 3.75, 3.75);
     noFill();
 }
 
 function flightKeyPressed() {
     /* 비행기 및 카메라 조절 함수 */
     if (keyIsDown(UP_ARROW)) {
-        cameraSpeed += 10;
+        cameraSpeed += 2;
         flightPosY -= 10;
         cameraPosY -= 10;
     }
     if (keyIsDown(DOWN_ARROW)) {
-        cameraSpeed -= 10;
+        cameraSpeed -= 2;
         flightPosY += 10;
         cameraPosY += 10;
     }
@@ -157,8 +157,8 @@ function flightKeyPressed() {
 
 function limitFlightField(_flightPosX, _flightPosY) {
     /* 비행기가 움직일 수 있는 범위를 제한합니다 */
-    limitX = 750;
-    limitY = 1280;
+    limitX = 1080;
+    limitY = 330;
     if (_flightPosX > limitX) {
         flightPosX = limitX;
     } else if (_flightPosX < -limitX) {
@@ -173,7 +173,7 @@ function limitFlightField(_flightPosX, _flightPosY) {
 
 function limitCamera(_cameraPosX, _cameraPosY) {
     /* 카메라 이동 범위를 제한합니다. */
-    var limitX = 45;
+    var limitX = 25;
     var limitY = 150;
     if (_cameraPosX >= limitX) {
         cameraPosX = limitX;
@@ -184,8 +184,8 @@ function limitCamera(_cameraPosX, _cameraPosY) {
         cameraPosY = limitY;
     }
 
-    if (cameraSpeed > 100) {
-        cameraSpeed = 100;
+    if (cameraSpeed > 50) {
+        cameraSpeed = 50;
     } else if (cameraSpeed < 0) {
         cameraSpeed = 0;
     }
@@ -197,12 +197,6 @@ function cameraRollBack() {
         cameraPosX--;
     } else if (cameraPosX < 0) {
         cameraPosX++;
-    }
-
-    if (cameraPosY > 0) {
-        cameraPosY--;
-    } else if (cameraPosY < 0) {
-        cameraPosY++;
     }
 
     if (cameraSpeed > 0) {
