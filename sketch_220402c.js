@@ -21,11 +21,9 @@ let flightShootDelay = 0;
 let flightLife = 1;
 var mode;
 let font;
-var img;
 
 function preload(){
   font = loadFont('malgunsl.ttf');
-  img = loadImage('unknown.png');
 }
 
 
@@ -70,16 +68,11 @@ function setup() {
 function draw() {
   clear();
   if(mode==0){
-    background(127);
-    push();
-    texture(img);
-    plane(img.width,img.height);
-    pop();
+    background(255);
       textSize(30);
-      fill(255,0,0);
-    text('[여기에 제목을 입력]',-150,-80);
+      fill(0);
+    text('[여기에 제목을 입력]',0,-80);
     textSize(48);
-    fill(0,0,255);
     text('Press Enter to start',0,120);
       
   }
